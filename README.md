@@ -1,4 +1,4 @@
-Self-Hosted Multi-Agent System
+# Self-Hosted Multi-Agent System
 
 A self-hosted multi-agent orchestration project for Deal Desk and Incident Response workflows using a Supervisor pattern with LangGraph. It combines a local vector retrieval layer with a local LLM serving layer and Langfuse-based observability.
 
