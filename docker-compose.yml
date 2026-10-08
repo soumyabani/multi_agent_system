@@ -19,6 +19,17 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        echo "Waiting for Ollama to start..."
+        until ollama list >/dev/null 2>&1; do sleep 1; done
+        echo "Checking required models..."
+        ollama pull nomic-embed-text
+        ollama pull llama3.1:8b-instruct-q4_0
+        echo "Models ready!"
+        wait
 
 volumes:
   qdrant_data:
