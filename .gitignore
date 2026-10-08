@@ -1,0 +1,34 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+
+# IDE/editor settings
+.vscode/
+.idea/
+.DS_Store
+
+# Logs and local runtime artifacts
+*.log
+.coverage
+htmlcov/
+
+# Docker/local data volumes
+clickhouse_data/
+zookeeper_data/
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/

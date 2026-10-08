@@ -1,0 +1,19 @@
+<clickhouse>
+  <!-- Listen on all network interfaces -->
+  <listen_host>0.0.0.0</listen_host>
+  
+  <!-- Macros for single-node replicated setup -->
+  <macros>
+    <shard>1</shard>
+    <replica>1</replica>
+  </macros>
+  
+  <zookeeper>
+    <node index="1">
+      <host>langfuse-zookeeper</host>
+      <port>2181</port>
+    </node>
+  </zookeeper>
+  
+  <interserver_http_host>langfuse-clickhouse</interserver_http_host>
+</clickhouse>

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "INC-001",
+    "title": "Payment Processing Delay",
+    "content": "Incident Report: Payment processing delays affecting 15% of transactions. Users reported 30-60 second delays when submitting payments. Root cause identified: Database connection pool exhaustion due to a slow query in the payment verification service. The query was performing a full table scan on the transactions table without using the indexed payment_id column. Temporary mitigation: Restarted the service. Permanent fix: Added missing index on transactions.payment_id and optimized the query. Resolution time: 2 hours. Impact: Approximately 5,000 failed transactions, customer revenue impact $50K. Prevention: Implement query performance monitoring and automated alerting for queries exceeding 1 second execution time.",
+    "severity": "critical",
+    "status": "resolved",
+    "created_at": "2026-09-20T14:30:00Z",
+    "resolved_at": "2026-09-20T16:45:00Z",
+    "root_cause": "Database index missing on high-traffic query",
+    "components_affected": ["payment-service", "database", "api-gateway"],
+    "tags": ["database", "performance", "payment-processing"]
+  },
+  {
+    "id": "INC-002",
+    "title": "API Gateway Memory Leak",
+    "content": "Incident Report: API Gateway instances showing increasing memory consumption over 48 hours, eventually triggering out-of-memory errors and service restart. Symptoms: Slow API response times, then timeout errors. Diagnosis: Memory profiling revealed unbounded growth in connection pooling cache. Root cause: Connection objects were not being properly released after requests completed, causing a memory leak in a recent code deployment. The deployed version had a bug in the connection cleanup handler. Fix: Reverted to previous stable version while engineering team investigated. Root cause analysis: Code review found missing call to close() method in connection cleanup. New deployment with fix passed through staging and was deployed. Impact: 3 hour outage, 2% of API requests affected. Prevention: Add memory leak detection to CI/CD pipeline and implement connection pool monitoring.",
+    "severity": "high",
+    "status": "resolved",
+    "created_at": "2026-09-18T08:00:00Z",
+    "resolved_at": "2026-09-18T11:15:00Z",
+    "root_cause": "Memory leak in connection pooling after code deployment",
+    "components_affected": ["api-gateway", "connection-pool"],
+    "tags": ["memory", "performance", "deployment"]
+  },
+  {
+    "id": "INC-003",
+    "title": "Load Balancer Sticky Session Misconfiguration",
+    "content": "Incident Report: Users experiencing sporadic login failures and session loss. Investigation revealed that sticky session settings on the load balancer were not properly configured after recent infrastructure update. When a user's request was routed to a different server instance, their session data was not available, causing the application to treat them as unauthenticated. Root cause: Infrastructure team performed load balancer update but did not properly test sticky session affinity configuration. The cookie-based session affinity was disabled, causing requests to be routed randomly across servers. Fix: Re-enabled session affinity in load balancer configuration and verified all servers were in sync. Testing: Performed load testing to confirm sticky sessions were working correctly. Impact: Users could not maintain sessions, affecting login functionality for 1.5 hours. Resolution: 45 minutes. Prevention: Add integration tests for load balancer configuration. Implement session synchronization across instances as backup.",
+    "severity": "high",
+    "status": "resolved",
+    "created_at": "2026-09-15T16:20:00Z",
+    "resolved_at": "2026-09-15T17:45:00Z",
+    "root_cause": "Load balancer sticky session configuration error",
+    "components_affected": ["load-balancer", "authentication", "session-management"],
+    "tags": ["configuration", "infrastructure", "session"]
+  },
+  {
+    "id": "INC-004",
+    "title": "Redis Cache Connection Exhaustion",
+    "content": "Incident Report: Application experiencing intermittent errors with cache operations. Redis connection pool exhausted, causing requests to fail when trying to cache or retrieve cached data. Errors: 'Connection pool exhausted, no more available connections'. Root cause: A code change in the caching layer inadvertently opened multiple connections per request instead of reusing connections from the pool. The bug was in retry logic that was creating new connections instead of reusing existing ones. Initial response: Circuit breaker triggered, cache operations were bypassed, application fell back to expensive database queries. Performance degradation: 40% increase in database load and query latency. Root cause fix: Patched the retry logic to properly reuse connections from the pool. Additional improvements: Increased connection pool size from 50 to 100 as a preventive measure. Monitoring added for connection pool utilization. Impact: 2 hour performance degradation affecting end-user response times. Prevention: Code review checklist for connection pooling patterns. Load testing with realistic connection patterns.",
+    "severity": "high",
+    "status": "resolved",
+    "created_at": "2026-09-12T10:15:00Z",
+    "resolved_at": "2026-09-12T12:30:00Z",
+    "root_cause": "Retry logic creating new Redis connections instead of reusing pool",
+    "components_affected": ["cache", "redis", "connection-pool"],
+    "tags": ["cache", "connection-pooling", "performance"]
+  },
+  {
+    "id": "INC-005",
+    "title": "Database Replication Lag",
+    "content": "Incident Report: Read replicas falling behind primary database, causing stale data to be served to analytics queries. Symptoms: Analytics reports showing data inconsistencies, users reporting outdated information. Investigation: Replication lag between primary and replicas was growing to 15+ minutes. Root cause: A batch job running on the primary database was holding long-running transactions, blocking replication. The job was processing millions of records without committing, preventing binary logs from being applied to replicas. Fix: Rewrote batch job to use smaller transaction batches (1000 rows at a time). Implemented checkpointing so job can resume from where it left off. Monitoring: Added alerts for replication lag exceeding 30 seconds. Impact: Analytics data was stale for 1.5 hours, customer reports delayed. Prevention: Implement replication lag monitoring. Add guidelines for batch job design to avoid long transactions. Set maximum transaction duration policies.",
+    "severity": "medium",
+    "status": "resolved",
+    "created_at": "2026-09-10T05:00:00Z",
+    "resolved_at": "2026-09-10T07:45:00Z",
+    "root_cause": "Long-running batch transactions blocking database replication",
+    "components_affected": ["database", "replication", "batch-jobs"],
+    "tags": ["database", "replication", "batch-processing"]
+  },
+  {
+    "id": "INC-006",
+    "title": "Certificate Expiration - SSL/TLS Timeout",
+    "content": "Incident Report: External API clients unable to establish secure connections. Error: SSL certificate validation failed. Root cause: SSL certificate for api.example.com expired without renewal. The certificate renewal process was supposed to be automated but fell through the cracks due to a configuration error in the certificate management system. The renewal script was pointing to the old certificate path. Impact: External integrations down for 3 hours, API not accessible. Discovery: Monitoring alert for certificate expiration failed to trigger (alert threshold was set to 30 days but certificate was already expired). Immediate fix: Obtained emergency certificate from CA and deployed. Root cause analysis: Certificate renewal automation misconfigured after recent infrastructure migration. Prevention: Add certificate expiration monitoring to status page. Implement multiple redundant renewal mechanisms. Set alerts for 60, 30, 14, 7 days before expiration.",
+    "severity": "critical",
+    "status": "resolved",
+    "created_at": "2026-09-05T09:00:00Z",
+    "resolved_at": "2026-09-05T12:15:00Z",
+    "root_cause": "SSL certificate expired due to failed renewal automation",
+    "components_affected": ["ssl-certificate", "api-gateway", "external-connectivity"],
+    "tags": ["security", "certificate", "external-api"]
+  },
+  {
+    "id": "INC-007",
+    "title": "Service Deployment Rollback - Backward Incompatibility",
+    "content": "Incident Report: After deploying v2.5.0, services started failing with database migration errors. New code expected database schema changes that hadn't been deployed yet. The deployment order was wrong - application code was deployed before database migrations. Symptoms: 500 errors from the service, logs showing 'column does not exist' errors. Root cause: CI/CD pipeline did not enforce proper deployment sequence. Database migrations are typically applied before application code, but automation skipped this in this case. Immediate response: Initiated rollback to v2.4.9 within 10 minutes. Database schema remained intact after rollback. Impact: 10 minute service outage affecting 5% of traffic. Prevention: Update deployment pipeline to validate and apply database migrations before application code. Add pre-deployment checks for database compatibility. Implement canary deployments to 5% of traffic first.",
+    "severity": "high",
+    "status": "resolved",
+    "created_at": "2026-09-03T14:00:00Z",
+    "resolved_at": "2026-09-03T14:40:00Z",
+    "root_cause": "Deployment order error - app code deployed before database migrations",
+    "components_affected": ["deployment-pipeline", "database", "application-service"],
+    "tags": ["deployment", "database-migration", "ci-cd"]
+  },
+  {
+    "id": "INC-008",
+    "title": "Disk Space Exhaustion - Log Accumulation",
+    "content": "Incident Report: Multiple services went down simultaneously due to disk space exhaustion. Root cause: Log aggregation system failed, logs were accumulating locally on servers instead of being shipped to the logging service. Over 2 weeks, logs consumed 95% of available disk space, causing writes to fail. Services tried to write logs and received 'disk full' errors, which then caused application failures. Initial symptoms: High IO wait times, slow performance. Then: Services started crashing. Investigation: Log rotation was disabled in a recent configuration change. Log shipping service was misconfigured (pointing to wrong logging endpoint). Fix: Enabled log rotation and configured automated cleanup of logs older than 7 days. Fixed log shipping configuration. Cleared old logs to free disk space. Services recovered automatically. Impact: 45 minute outage affecting critical services. Prevention: Add disk space monitoring with alerts at 80% and 90% thresholds. Implement automated disk cleanup policies. Add integration tests for log shipping.",
+    "severity": "critical",
+    "status": "resolved",
+    "created_at": "2026-08-28T22:00:00Z",
+    "resolved_at": "2026-08-29T00:15:00Z",
+    "root_cause": "Log rotation disabled, log shipping misconfigured, disk space exhausted",
+    "components_affected": ["logging", "storage", "monitoring"],
+    "tags": ["operations", "storage", "monitoring"]
+  },
+  {
+    "id": "INC-009",
+    "title": "Network Partition - Microservice Communication Failure",
+    "content": "Incident Report: Microservices in the payment processing pipeline unable to communicate with each other. Investigation revealed network partition between availability zones - the inter-zone network connection was interrupted. Services in Zone-A could not reach services in Zone-B. Root cause: Network maintenance by infrastructure team accidentally disabled the inter-zone routing rule instead of just the maintenance interface. Services were configured to work across zones, but no fallback mechanisms were in place for network partitions. Impact: Payment processing pipeline failed because services couldn't coordinate. Transactions in progress failed. Immediate response: Restored network routing after 20 minutes of troubleshooting. Transactions needed manual recovery. Prevention: Implement circuit breakers for inter-service communication. Add health checks that detect zone connectivity issues. Implement graceful degradation for zone failures. Add network partition monitoring.",
+    "severity": "critical",
+    "status": "resolved",
+    "created_at": "2026-08-25T15:30:00Z",
+    "resolved_at": "2026-08-25T16:45:00Z",
+    "root_cause": "Network partition - inter-zone routing disabled during maintenance",
+    "components_affected": ["networking", "microservices", "payment-pipeline"],
+    "tags": ["network", "infrastructure", "microservices"]
+  },
+  {
+    "id": "INC-010",
+    "title": "Third-party API Rate Limit Exceeded",
+    "content": "Incident Report: External payment gateway API started rejecting requests with 429 (Too Many Requests) errors. Application was making more requests than the contracted rate limit allowed. Root cause: A recent product change increased the rate of API calls to the payment gateway (new feature required additional validation checks). The feature was deployed without updating the API client to implement proper rate limiting or backoff. Client was sending burst requests without queuing. Impact: Payment processing started failing for new transactions. Business impact: New orders could not be placed. Immediate response: Deployed emergency code to implement exponential backoff and request queuing. Contacted third-party API provider to temporarily increase rate limit. Duration: 1.5 hours before fix was deployed. Prevention: Implement client-side rate limiting before deploying features that increase API call volume. Add integration tests for third-party API limits. Monitor API call rates in staging before production deployment. Implement circuit breaker pattern for external API calls.",
+    "severity": "critical",
+    "status": "resolved",
+    "created_at": "2026-08-20T11:00:00Z",
+    "resolved_at": "2026-08-20T12:30:00Z",
+    "root_cause": "Feature deployment increased API call volume exceeding third-party rate limits",
+    "components_affected": ["payment-gateway", "external-api", "api-client"],
+    "tags": ["external-api", "rate-limiting", "third-party"]
+  }
+]
